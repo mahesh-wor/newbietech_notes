@@ -1,0 +1,128 @@
+Credits to TiGER511:
+
+
+1.Info Gathering:
+	uname -a
+	lspci | grep -E "VGA|3D"
+
+
+
+2.Disable nouveau:
+	echo -e "blacklist nouveau\noptions nouveau modeset=0\nalias nouveau off" > /etc/modprobe.d/blacklist-nouveau.conf
+	update-initramfs -u && reboot
+
+
+
+3.Verify nouveau:
+	lsmod |grep -i nouveau
+
+
+
+4.Install nvidia-drivers: (Parrot/Kali Repo) 
+	apt-get install  nvidia-driver nvidia-xconfig
+	or
+	download .bin from www.nvidia.com/Download/index.aspx
+
+
+
+5.Find Bus ID:
+	lspci | grep -E "NVIDIA" | cut -d ' ' -f1
+	or
+	nvidia-xconfig --query-gpu-info | grep 'BusID : ' | cut -d ' ' -f6 
+
+
+
+6.Generate  /etc/X11/xorg.conf:
+Visit "http://us.download.nvidia.com/XFree86/Linux-x86/375.39/README/randr14.html" for details.
+ 	sudo nano /etc/X11/xorg.conf
+
+Section "ServerLayout"
+    Identifier "layout"
+    Screen 0 "nvidia"
+    Inactive "intel"
+EndSection
+
+Section "Device"
+    Identifier "nvidia"
+    Driver "nvidia"
+    BusID "PCI:10:0:0"
+EndSection
+
+Section "Screen"
+    Identifier "nvidia"
+    Device "nvidia"
+    Option "AllowEmptyInitialConfiguration"
+EndSection
+
+Section "Device"
+    Identifier "intel"
+    Driver "modesetting"
+EndSection
+
+Section "Screen"
+    Identifier "intel"
+    Device "intel"
+EndSection
+
+Note: change the values of PCI:10:0:0 to PCI:x:0:0
+
+
+
+
+7.Create StartUp Scripts 
+Check "https://wiki.archlinux.org/index.php/NVIDIA_Optimus#Display_Managers" For Details.
+
+For Kali_Linux (gdm):
+
+create two files : /usr/share/gdm/greeter/autostart/optimus.desktop
+		 : /etc/xdg/autostart/optimus.desktop
+
+[Desktop Entry]
+Type=Application
+Name=Optimus
+Exec=sh -c "xrandr --setprovideroutputsource modesetting NVIDIA-0; xrandr --auto"
+NoDisplay=true
+X-GNOME-Autostart-Phase=DisplayServer
+
+
+
+For ParrotSecOS:
+
+sudo nano /etc/lightdm/display_setup.sh
+
+#!/bin/sh
+xrandr --setprovideroutputsource modesetting NVIDIA-0
+xrandr --auto
+
+sudo chmod +x /etc/lightdm/display_setup.sh
+
+sudo nano /etc/lightdm/lightdm.conf
+
+[Seat:*]
+display-setup-script=/etc/lightdm/display_setup.sh
+
+
+
+8. Reboot:
+	reboot
+
+
+
+9. Verify Nvidia Drivers:
+
+	glxinfo | grep -i "direct rendering"
+	
+if "direct rendering: Yes" then its working.
+	
+	or
+
+	see using nvidia-smi
+	install with "sudo apt-get install nvidia-smi"
+
+
+
+10. Visit this thread for Further Info:
+
+https://forums.kali.org/showthread.php?35748-TUTORIAL-Installing-official-NVIDIA-driver-in-Optimus-laptop
+
+Thank You.
