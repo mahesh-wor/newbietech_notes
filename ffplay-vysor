@@ -1,0 +1,3 @@
+adb shell screenrecord --bit-rate=5m --output-format=h264 --size 1 - | ffplay -framerate 60 -framedrop -bufsize 5M -
+
+
